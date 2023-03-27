@@ -406,7 +406,7 @@ namespace lidar_selection
      */
     void LidarSelector::addFromSparseMap(cv::Mat img, PointCloudXYZI::Ptr pg)
     {
-        if (feat_map.size() <= 0)
+        if (feat_map.size() <= 0)  ///feat_map整个视觉地图
             return;
         /* 初始化深度地图 */
         double ts0 = omp_get_wtime();
@@ -417,7 +417,7 @@ namespace lidar_selection
         downSizeFilter.filter(*pg_down);
         
         // Step 0.1: 把当前帧的子地图中的点全部清空
-        reset_grid();
+        reset_grid();  //重置grid_num，map_index，map_dist，map_dist，voxel_points_
         memset(map_value, 0, sizeof(float) * length); // length = grid_n_width * grid_n_height
         cout << "1111111111111111111111: " << sizeof(float)*length << endl; // todo:???768
 
@@ -469,7 +469,7 @@ namespace lidar_selection
                 sub_feat_map[position] = 1.0; // 未查找到，返回一个指向sub_feat_map.end()的指针，则需要初始化
             }
 
-            //; 相机坐标系下的点
+            //点云在相机坐标系下的位姿
             V3D pt_c(new_frame_->w2f(pt_w)); // 世界坐标转换为相机frame
 
             V2D px;
@@ -485,6 +485,7 @@ namespace lidar_selection
                     int col = int(px[0]);
                     int row = int(px[1]);
                     //; 给图像中这个像素点的深度赋值为LiDAR点的值，注意这里用的是上一帧LiDAR点云，因此应该不会有重复的点
+                    ////当前帧雷达数据中如果多个点云投影到了图像上同一个点怎么办？只使用最后一个点的深度？
                     it[width * row + col] = depth; // TODO：idx是如何定义的
                 }
             }
@@ -1270,6 +1271,7 @@ namespace lidar_selection
         new_frame_.reset(new Frame(cam, img.clone()));
         
         //; 利用IMU积分预测得到的当前IMU在world系下的位姿，然后得到当前时刻下 world系 在 相机系 下的位姿
+        ///计算new_frame_->T_f_w_
         updateFrameState(*state); // get transformation of world to camera ：T_f_w
 
         //; 如果当前帧是第一帧，并且点云足够，则设置当前帧为关键帧: 关键帧会寻找特征点

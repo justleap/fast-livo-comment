@@ -569,6 +569,16 @@ void img_cbk(const sensor_msgs::ImageConstPtr &msg)
  * @return true 
  * @return false 
  */
+
+////放入激光数据并按curvature排序
+
+////只有雷达数据和imu数据，没有图像数据的情况下
+///取上一次的雷达结束实际lidar_end_time和本次雷达数据结束之间的所有imu数据即可
+
+////有图像数据
+////图像数据在雷达数据前面，只取雷达数据和上帧雷达数据之间的imu数据
+
+//////有图像数据，图像数据在两帧雷达数据中间，取图像数据 雷达数据和图像雷达数据之间的imu数据
 bool sync_packages(LidarMeasureGroup &meas)
 {
     if ((lidar_buffer.empty() && img_buffer.empty()))
@@ -737,7 +747,7 @@ bool sync_packages(LidarMeasureGroup &meas)
         sig_buffer.notify_all();
         // has img topic in lidar scan, so flag "is_lidar_end=false"
         meas.is_lidar_end = false; 
-        //; 这里可以发现没有对measures之前的图像数据清空，也就是当前帧LiDAR之前的多帧图像每次同步
+        //; 这里可以发现没有对measures之前的图像数据清空，也就是当前帧LiDAR之前的多帧图像每次同步  ///lidar end的时候把measures都clear了，不存在这个问题
         //; 都会被放到measures里面。后面看一下处理的时候怎么做的，肯定不会重复处理
         meas.measures.push_back(m);
     }
@@ -1093,6 +1103,7 @@ int main(int argc, char **argv)
             break;
         ros::spinOnce();
         // Step 1: 同步LiDAR、IMU、Image信息，如果没有同步成功，则一直在这里等待
+        ///理论上同步成功的话，每个LidarMeasures里只有一帧雷达和多帧imu，或者一帧雷达一帧图像多帧imu
         if (!sync_packages(LidarMeasures))
         {
             status = ros::ok();

@@ -156,6 +156,7 @@ void ImuProcess::IMU_init(const MeasureGroup &meas, esekfom::esekf<state_ikfom, 
 }
 #else
 
+//IMU_init：根据一定量数据和第一帧的角速度 加速度的差值，计算imu的cov_acc，cov_gyr，state_inout.gravity，state_inout.bias_g;
 void ImuProcess::IMU_init(const MeasureGroup &meas, StatesGroup &state_inout, int &N)
 {
     /** 1. initializing the gravity, gyro bias, acc and gyro covariance
@@ -882,7 +883,7 @@ void ImuProcess::Process2(LidarMeasureGroup &lidar_meas, StatesGroup &stat, Poin
     //; 这里就是数据同步的时候自己说的，一帧LiDAR前面可能有多帧的图像，但是每次同步插入的都是最新帧的图像，
     //; 所以这里处理的时候也要拿出最新帧的图像数据来处理（如果没有图像的话，那么measures里面就相当于一帧
     //; 空的图像，然后附带了很多对齐的IMU，此时就相当于单独处理IMU，没有图像也不影响）
-    MeasureGroup meas = lidar_meas.measures.back(); // TODO:back??
+    MeasureGroup meas = lidar_meas.measures.back(); // TODO:back??  ///ofcourse back,lidar_meas 是push back
 
     if (imu_need_init_)
     {
